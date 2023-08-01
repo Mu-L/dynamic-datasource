@@ -41,7 +41,7 @@ public final class DruidLogConfigUtil {
      * @param g     全局配置
      * @return 日志filter
      */
-    public static LogFilter initFilter(Class<? extends LogFilter> clazz, Map<String, Object> c, Map<String, Object> g) {
+    public static LogFilter instantiateFilter(Class<? extends LogFilter> clazz, Map<String, Object> c, Map<String, Object> g) {
         try {
             LogFilter filter = clazz.getDeclaredConstructor().newInstance();
             Map<String, Object> params = DsConfigUtil.mergeMap(c, g);

@@ -15,7 +15,6 @@
  */
 package com.baomidou.dynamic.datasource.toolkit;
 
-import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,7 +24,7 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * 用于合并配置并转换成目标配置的工具类
@@ -35,7 +34,6 @@ import java.util.Properties;
  * @author TaoYu
  */
 @Slf4j
-@AllArgsConstructor
 public class ConfigMergeCreator<C, T> {
 
     private final String configName;
@@ -44,6 +42,20 @@ public class ConfigMergeCreator<C, T> {
 
     private final Class<T> targetClazz;
 
+    private PropertyDescriptor[] descriptors;
+
+    public ConfigMergeCreator(String configName, Class<C> configClazz, Class<T> targetClazz) {
+        this.configName = configName;
+        this.configClazz = configClazz;
+        this.targetClazz = targetClazz;
+        try {
+            BeanInfo beanInfo = Introspector.getBeanInfo(configClazz, Object.class);
+            descriptors = beanInfo.getPropertyDescriptors();
+        } catch (Exception ignore) {
+
+        }
+    }
+
     @SneakyThrows
     @SuppressWarnings("unchecked")
     public T create(C global, C item) {
@@ -51,12 +63,14 @@ public class ConfigMergeCreator<C, T> {
             return (T) item;
         }
         T result = targetClazz.getDeclaredConstructor().newInstance();
-        BeanInfo beanInfo = Introspector.getBeanInfo(configClazz, Object.class);
-        PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
-        for (PropertyDescriptor pd : propertyDescriptors) {
+        for (PropertyDescriptor pd : descriptors) {
             Class<?> propertyType = pd.getPropertyType();
             if (Properties.class == propertyType) {
                 mergeProperties(global, item, result, pd);
+            } else if (Collection.class.isAssignableFrom(propertyType)) {
+                mergeCollection(global, item, result, pd);
+            } else if (Map.class.isAssignableFrom(propertyType)) {
+                mergeMap(global, item, result, pd);
             } else {
                 mergeBasic(global, item, result, pd);
             }
@@ -65,20 +79,63 @@ public class ConfigMergeCreator<C, T> {
     }
 
     @SneakyThrows
+    private void mergeMap(C global, C item, T result, PropertyDescriptor pd) {
+        String name = pd.getName();
+        Method readMethod = pd.getReadMethod();
+        Map itemValue = (Map) readMethod.invoke(item);
+        Map globalValue = global == null ? null : (Map) readMethod.invoke(global);
+        Map mergeResult = new HashMap();
+
+        if (globalValue != null) {
+            mergeResult.putAll(globalValue);
+        }
+        if (itemValue != null) {
+            mergeResult.putAll(itemValue);
+        }
+        if (!mergeResult.isEmpty()) {
+            setField(result, name, mergeResult);
+        }
+    }
+
+    @SneakyThrows
+    private void mergeCollection(C global, C item, T result, PropertyDescriptor pd) {
+        String name = pd.getName();
+        Method readMethod = pd.getReadMethod();
+        Class<?> propertyType = pd.getPropertyType();
+        Collection<?> itemValue = (Collection<?>) readMethod.invoke(item);
+        Collection<?> globalValue = global == null ? null : (Collection<?>) readMethod.invoke(global);
+        Collection mergeResult;
+        if (propertyType.isAssignableFrom(List.class)) {
+            mergeResult = new ArrayList<>();
+        } else if (propertyType.isAssignableFrom(Set.class)) {
+            mergeResult = new HashSet<>();
+        } else return;
+        if (globalValue != null) {
+            mergeResult.addAll(globalValue);
+        }
+        if (itemValue != null) {
+            mergeResult.addAll(itemValue);
+        }
+        if (!mergeResult.isEmpty()) {
+            setField(result, name, mergeResult);
+        }
+    }
+
+    @SneakyThrows
     private void mergeProperties(C global, C item, T result, PropertyDescriptor pd) {
         String name = pd.getName();
         Method readMethod = pd.getReadMethod();
         Properties itemValue = (Properties) readMethod.invoke(item);
-        Properties globalValue = (Properties) readMethod.invoke(global);
-        Properties properties = new Properties();
+        Properties globalValue = global == null ? null : (Properties) readMethod.invoke(global);
+        Properties mergeResult = new Properties();
         if (globalValue != null) {
-            properties.putAll(globalValue);
+            mergeResult.putAll(globalValue);
         }
         if (itemValue != null) {
-            properties.putAll(itemValue);
+            mergeResult.putAll(itemValue);
         }
-        if (properties.size() > 0) {
-            setField(result, name, properties);
+        if (!mergeResult.isEmpty()) {
+            setField(result, name, mergeResult);
         }
     }
 
@@ -87,7 +144,7 @@ public class ConfigMergeCreator<C, T> {
         String name = pd.getName();
         Method readMethod = pd.getReadMethod();
         Object value = readMethod.invoke(item);
-        if (value == null) {
+        if (value == null && global != null) {
             value = readMethod.invoke(global);
         }
         if (value != null) {

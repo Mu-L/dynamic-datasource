@@ -16,7 +16,6 @@
 package com.baomidou.dynamic.datasource.tx;
 
 import com.baomidou.dynamic.datasource.exception.TransactionException;
-import com.baomidou.mybatisplus.core.toolkit.ArrayUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 

@@ -20,6 +20,7 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -65,7 +66,7 @@ public final class DsConfigUtil {
     }
 
     public static Map<String, PropertyDescriptor> getPropertyDescriptorMap(Class<?> clazz) {
-        Map<String, PropertyDescriptor> methodMap = new HashMap<>();
+        Map<String, PropertyDescriptor> methodMap = new TreeMap<>();
         try {
             for (PropertyDescriptor pd : Introspector.getBeanInfo(clazz).getPropertyDescriptors()) {
                 if (!"class".equals(pd.getName())) {

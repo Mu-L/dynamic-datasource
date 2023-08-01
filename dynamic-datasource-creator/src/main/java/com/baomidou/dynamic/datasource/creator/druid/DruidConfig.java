@@ -31,44 +31,55 @@ import java.util.*;
 public class DruidConfig {
 
     private Integer initialSize;
-    private Integer maxActive;
     private Integer minIdle;
+    private Integer maxActive;
     private Integer maxWait;
-    private Long timeBetweenEvictionRunsMillis;
-    private Long timeBetweenLogStatsMillis;
-    private Long keepAliveBetweenTimeMillis;
-    private Integer statSqlMaxSize;
+    private Integer maxWaitThreadCount;
+    private Integer notFullTimeoutRetryCount;
+    private Integer maxPoolPreparedStatementPerConnectionSize;
+
     private Long minEvictableIdleTimeMillis;
     private Long maxEvictableIdleTimeMillis;
+    private Long timeBetweenEvictionRunsMillis;
+    private Long timeBetweenLogStatsMillis;
+    private Long phyTimeoutMillis;
+    private Long phyMaxUseCount;
+    private Long keepAliveBetweenTimeMillis;
+
+    private Boolean keepAlive;
+    private Boolean asyncInit;
+    private Boolean failFast;
+    private Boolean testWhileIdle;
+    private Boolean testOnBorrow;
+    private Boolean initVariants;
+    private Boolean useUnfairLock;
+    private Boolean resetStatEnable;
+    private Boolean initGlobalVariants;
+    private Boolean useGlobalDataSourceStat;
+    private Boolean killWhenSocketReadTimeout;
+    private Boolean clearFiltersEnable;
+    private Boolean poolPreparedStatements;
+
+    private String filters;
+    private String validationQuery;
+    private String initConnectionSqls;
+
+    private Properties connectionProperties;
+
+    //上面是connectionProperties里支持的属性
+
+    private Map<String, Object> extra = new HashMap<>();
+
+
+    private Integer statSqlMaxSize;
     private String defaultCatalog;
     private Boolean defaultAutoCommit;
     private Boolean defaultReadOnly;
     private Integer defaultTransactionIsolation;
-    private Boolean testWhileIdle;
-    private Boolean testOnBorrow;
     private Boolean testOnReturn;
-    private String validationQuery;
     private Integer validationQueryTimeout;
-    private Boolean useGlobalDataSourceStat;
-    private Boolean asyncInit;
-    private String filters;
-    private Boolean clearFiltersEnable;
-    private Boolean resetStatEnable;
-    private Integer notFullTimeoutRetryCount;
-    private Integer maxWaitThreadCount;
-    private Boolean failFast;
-    private Long phyTimeoutMillis;
-    private Long phyMaxUseCount;
 
-    private Boolean keepAlive;
-    private Boolean poolPreparedStatements;
-    private Boolean initVariants;
-    private Boolean initGlobalVariants;
-    private Boolean useUnfairLock;
-    private Boolean killWhenSocketReadTimeout;
-    private Properties connectionProperties;
-    private Integer maxPoolPreparedStatementPerConnectionSize;
-    private String initConnectionSqls;
+
     private Boolean sharePreparedStatements;
     private Integer connectionErrorRetryAttempts;
     private Boolean breakAfterAcquireFailure;
